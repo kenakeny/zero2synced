@@ -1,0 +1,3 @@
+[submodule "src/fivetran-mcp"]
+	path = src/fivetran-mcp
+	url = https://github.com/fivetran/fivetran-mcp
