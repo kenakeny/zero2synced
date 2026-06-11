@@ -18,7 +18,7 @@ SESSION_ID = "session"
 
 async def main():
     agent, mcp_toolset = await create_agent()
-
+    print("Agent created successfully")
     session_service = InMemorySessionService()
     await session_service.create_session(
         session_id=SESSION_ID,
