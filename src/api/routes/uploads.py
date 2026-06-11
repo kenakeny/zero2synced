@@ -2,11 +2,20 @@ import json
 import uuid
 from pathlib import Path
 
+<<<<<<< HEAD
 from fastapi import APIRouter, Request, UploadFile, HTTPException
+=======
+from fastapi import APIRouter, Request, UploadFile, HTTPException, Depends
+>>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
 from sse_starlette.sse import EventSourceResponse
 from sqlalchemy import text
 
 from ..db import get_engine
+<<<<<<< HEAD
+=======
+from ..auth import get_current_user, assert_session_owner
+from ..agent_pool import get_runner
+>>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
 from ..ingestion import parse_file, upload_to_s3, build_agent_notification
 from ..schemas import UploadInfo
 from .chat import run_agent_turn
@@ -17,7 +26,24 @@ UPLOAD_DIR = Path("uploads")
 
 
 @router.post("/sessions/{session_id}/files")
+<<<<<<< HEAD
 async def upload_file(session_id: str, file: UploadFile, request: Request):
+=======
+async def upload_file(
+    session_id: str,
+    file: UploadFile,
+    request: Request,
+    user_id: str = Depends(get_current_user),
+):
+    await assert_session_owner(session_id, user_id)
+
+    runner = await get_runner(request.app, user_id)
+    if runner is None:
+        raise HTTPException(
+            status_code=409, detail="Connect your Fivetran account first to start syncing."
+        )
+
+>>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
     raw = await file.read()
     if len(raw) > 20 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="File too large (max 20 MB)")
@@ -63,14 +89,23 @@ async def upload_file(session_id: str, file: UploadFile, request: Request):
             "row_count": parsed.row_count, "columns": parsed.columns,
         })}
         async with lock:
+<<<<<<< HEAD
             async for sse_event in run_agent_turn(request, session_id, notification):
+=======
+            async for sse_event in run_agent_turn(runner, session_id, notification, user_id):
+>>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
                 yield sse_event
 
     return EventSourceResponse(event_stream())
 
 
 @router.get("/sessions/{session_id}/files", response_model=list[UploadInfo])
+<<<<<<< HEAD
 async def list_files(session_id: str):
+=======
+async def list_files(session_id: str, user_id: str = Depends(get_current_user)):
+    await assert_session_owner(session_id, user_id)
+>>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
     engine = get_engine()
     async with engine.connect() as conn:
         rows = (

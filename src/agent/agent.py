@@ -11,15 +11,18 @@ warnings.filterwarnings(
 load_dotenv()  # Load environment variables from .env file
 
 
-async def create_agent():
+async def create_agent(api_key: str | None = None, api_secret: str | None = None):
+    # Per-user keys when provided; fall back to .env (keeps the CLI working).
+    api_key = api_key or os.getenv("FIVETRAN_API_KEY")
+    api_secret = api_secret or os.getenv("FIVETRAN_API_SECRET")
     mcp_toolset = MCPToolset(
         connection_params=StdioServerParameters(
             command="python",
             args=[os.path.join(os.path.dirname(__file__),
                                "..", "fivetran-mcp", "server.py")],
             env={
-                "FIVETRAN_API_KEY": os.getenv("FIVETRAN_API_KEY"),
-                "FIVETRAN_API_SECRET": os.getenv("FIVETRAN_API_SECRET"),
+                "FIVETRAN_API_KEY": api_key,
+                "FIVETRAN_API_SECRET": api_secret,
                 "FIVETRAN_ALLOW_WRITES": "true"
             }
         ), tool_filter=[

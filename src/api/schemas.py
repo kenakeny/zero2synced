@@ -1,5 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
+
+
+class Credentials(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserInfo(BaseModel):
+    id: str
+    email: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserInfo
 
 
 class ChatRequest(BaseModel):

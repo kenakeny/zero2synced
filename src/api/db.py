@@ -7,12 +7,20 @@ from sqlalchemy import text
 _engine: AsyncEngine | None = None
 
 DDL = """
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 CREATE TABLE IF NOT EXISTS app_sessions (
     id TEXT PRIMARY KEY,
+    user_id TEXT,
     title TEXT NOT NULL DEFAULT 'New chat',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     last_active TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE app_sessions ADD COLUMN IF NOT EXISTS user_id TEXT;
 CREATE TABLE IF NOT EXISTS uploads (
     id TEXT PRIMARY KEY,
     session_id TEXT NOT NULL REFERENCES app_sessions(id),
@@ -22,6 +30,13 @@ CREATE TABLE IF NOT EXISTS uploads (
     row_count INTEGER,
     columns TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS fivetran_credentials (
+    user_id TEXT PRIMARY KEY,
+    api_key_enc TEXT NOT NULL,
+    api_secret_enc TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 """
 
