@@ -5,7 +5,7 @@
 #
 # Rename `app` below to your own unique Fly app name before launching.
 
-app = "zero-to-synced"
+app = "zero2synced"
 primary_region = "iad"
 
 [build]
