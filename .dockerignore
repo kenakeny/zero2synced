@@ -1,0 +1,31 @@
+# Keep the build context (and image) small + reproducible.
+.git
+.gitignore
+.dockerignore
+Dockerfile
+fly.toml
+
+# Local secrets — never bake these into the image. Set them with `fly secrets`.
+.env
+*.env
+!.env.example
+
+# Python caches / local virtualenvs (incl. the one committed under the submodule).
+__pycache__/
+**/__pycache__/
+*.pyc
+.venv/
+**/.venv/
+venv/
+
+# Frontend is deployed separately; its build artifacts don't belong in the API image.
+frontend/node_modules/
+frontend/dist/
+node_modules/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+mcp.json
+.mcp.json

@@ -1,0 +1,41 @@
+# fly.toml — Zero-to-Synced API
+# Deploy:  fly launch --no-deploy   (first time, to create the app)
+#          fly secrets set ...      (see README / .env.example for the list)
+#          fly deploy
+#
+# Rename `app` below to your own unique Fly app name before launching.
+
+app = "zero-to-synced"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  # Use the Gemini Developer API (API key) rather than Vertex AI / ADC.
+  GOOGLE_GENAI_USE_VERTEXAI = "false"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  # FastAPI exposes GET /api/health (see src/api/app.py).
+  [[http_service.checks]]
+    method = "get"
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"

@@ -1,10 +1,13 @@
 # FastAPI entrypoint. Agents are created per-user from each user's stored
 # Fivetran keys (see agent_pool), so we do NOT build a shared agent at startup.
 import asyncio
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from google.adk.sessions import DatabaseSessionService
 
 load_dotenv()
@@ -33,9 +36,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Zero-to-Synced API", lifespan=lifespan)
 
+# Same-origin in production (the API serves the built frontend), so CORS is
+# only needed for local dev or a split deploy. Override with CORS_ORIGINS
+# (comma-separated) when the frontend is hosted on a different origin.
+_default_origins = "http://localhost:5173,http://localhost:3000"
+_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", _default_origins).split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,3 +67,11 @@ def get_session_lock(session_id: str) -> asyncio.Lock:
     if session_id not in locks:
         locks[session_id] = asyncio.Lock()
     return locks[session_id]
+
+
+# Serve the built React app (frontend/dist) as a same-origin SPA, if present.
+# Mounted last so it never shadows the /api routes above. No-ops in local dev
+# where you run Vite separately and there's no dist/ yet.
+_frontend_dist = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    app.mount("/", StaticFiles(directory=str(_frontend_dist), html=True), name="frontend")

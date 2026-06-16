@@ -1,59 +1,34 @@
 import json
-<<<<<<< HEAD
-from fastapi import APIRouter, Request, HTTPException
-=======
 from fastapi import APIRouter, Request, HTTPException, Depends
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
 from sse_starlette.sse import EventSourceResponse
 from sqlalchemy import text
 from google.genai import types
 from google.adk.agents.run_config import RunConfig, StreamingMode
 
 from ..db import get_engine
-<<<<<<< HEAD
-=======
 from ..auth import get_current_user, assert_session_owner
 from ..agent_pool import get_runner
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
 from ..schemas import ChatRequest
 
 router = APIRouter(tags=["chat"])
 
 APP_NAME = "Zero-to-Synced"
-<<<<<<< HEAD
-USER_ID = "user"
-
-
-async def run_agent_turn(request: Request, session_id: str, message_text: str):
-    """Yields SSE events: token / tool / done / error."""
-    runner = request.app.state.runner
-
-=======
 
 NOT_CONNECTED = "Connect your Fivetran account first to start syncing."
 
 
 async def run_agent_turn(runner, session_id: str, message_text: str, user_id: str):
     """Yields SSE events: token / tool / done / error."""
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
     message = types.Content(role="user", parts=[types.Part(text=message_text)])
     final_text = ""
 
     try:
         async for event in runner.run_async(
-<<<<<<< HEAD
-            user_id=USER_ID,
-=======
             user_id=user_id,
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
             session_id=session_id,
             new_message=message,
             run_config=RunConfig(streaming_mode=StreamingMode.SSE),
         ):
-<<<<<<< HEAD
-            # tool activity — lets the frontend show "talking to Fivetran..."
-=======
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
             for call in event.get_function_calls():
                 yield {"event": "tool", "data": json.dumps(
                     {"name": call.name, "status": "running"})}
@@ -61,10 +36,6 @@ async def run_agent_turn(runner, session_id: str, message_text: str, user_id: st
                 yield {"event": "tool", "data": json.dumps(
                     {"name": resp.name, "status": "done"})}
 
-<<<<<<< HEAD
-            # streamed model text
-=======
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
             if event.content and event.content.parts:
                 for part in event.content.parts:
                     if getattr(part, "text", None):
@@ -76,21 +47,12 @@ async def run_agent_turn(runner, session_id: str, message_text: str, user_id: st
 
         yield {"event": "done", "data": json.dumps({"text": final_text})}
 
-<<<<<<< HEAD
-    except Exception as e:  # surface as a plain-English SSE error, not a 500
-=======
     except Exception as e:
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
         yield {"event": "error", "data": json.dumps(
             {"message": f"Something went wrong talking to the agent: {e}"})}
 
 
 @router.post("/sessions/{session_id}/chat")
-<<<<<<< HEAD
-async def chat(session_id: str, body: ChatRequest, request: Request):
-    session = await request.app.state.session_service.get_session(
-        app_name=APP_NAME, user_id=USER_ID, session_id=session_id
-=======
 async def chat(
     session_id: str,
     body: ChatRequest,
@@ -105,7 +67,6 @@ async def chat(
 
     session = await request.app.state.session_service.get_session(
         app_name=APP_NAME, user_id=user_id, session_id=session_id
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
     )
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -114,16 +75,9 @@ async def chat(
     lock = get_session_lock(session_id)
 
     async def event_stream():
-<<<<<<< HEAD
-        async with lock:  # one in-flight turn per session
-            async for sse_event in run_agent_turn(request, session_id, body.message):
-                yield sse_event
-        # touch last_active for the session list ordering
-=======
         async with lock:
             async for sse_event in run_agent_turn(runner, session_id, body.message, user_id):
                 yield sse_event
->>>>>>> edf78e1393db046fe4ab4e67ca35afc838e3f885
         engine = get_engine()
         async with engine.begin() as conn:
             await conn.execute(
