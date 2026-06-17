@@ -1,17 +1,19 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import text
 
 from ..db import get_engine
 from ..auth import hash_password, verify_password, make_token, get_current_user
 from ..schemas import Credentials, AuthResponse, UserInfo
+from ..app import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/signup", response_model=AuthResponse)
-async def signup(body: Credentials):
+@limiter.limit("5/minute")
+async def signup(request: Request, body: Credentials):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters.")
 
@@ -41,7 +43,8 @@ async def signup(body: Credentials):
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(body: Credentials):
+@limiter.limit("10/minute")
+async def login(request: Request, body: Credentials):
     email = body.email.lower()
     engine = get_engine()
     async with engine.connect() as conn:

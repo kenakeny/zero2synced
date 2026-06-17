@@ -22,10 +22,15 @@ if _sa_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     except Exception:
         pass
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from google.adk.sessions import DatabaseSessionService
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
 
 from .db import init_tables, get_db_url  # noqa: E402
 from .routes import chat, sessions, uploads, auth, fivetran  # noqa: E402
@@ -50,6 +55,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Zero-to-Synced API", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Same-origin in production (the API serves the built frontend), so CORS is
 # only needed for local dev or a split deploy. Override with CORS_ORIGINS

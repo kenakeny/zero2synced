@@ -9,6 +9,7 @@ from ..db import get_engine
 from ..auth import get_current_user, assert_session_owner
 from ..agent_pool import get_runner
 from ..schemas import ChatRequest
+from ..app import limiter
 
 router = APIRouter(tags=["chat"])
 
@@ -53,6 +54,7 @@ async def run_agent_turn(runner, session_id: str, message_text: str, user_id: st
 
 
 @router.post("/sessions/{session_id}/chat")
+@limiter.limit("30/minute")
 async def chat(
     session_id: str,
     body: ChatRequest,
