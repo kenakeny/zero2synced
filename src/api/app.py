@@ -12,16 +12,15 @@ load_dotenv()
 
 # Bootstrap Vertex AI service account credentials from env var.
 # Must happen before any google-auth import so ADC resolution picks it up.
-_sa_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON", "").strip()
+_sa_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON", "").strip().lstrip("﻿")
 if _sa_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
     try:
-        _parsed = json.loads(_sa_json)
         _tf = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
-        json.dump(_parsed, _tf)
+        _tf.write(_sa_json)
         _tf.close()
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _tf.name
-    except json.JSONDecodeError:
-        pass  # bad value — app will still start, Vertex AI calls will fail at runtime
+    except Exception:
+        pass
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
