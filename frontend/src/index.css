@@ -81,6 +81,13 @@ button { font-family: inherit; cursor: pointer; }
   background: linear-gradient(150deg, var(--accent), #6f67ff);
   position: relative;
 }
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  object-fit: cover;
+}
 .brand-mark::after {
   content: "";
   position: absolute;

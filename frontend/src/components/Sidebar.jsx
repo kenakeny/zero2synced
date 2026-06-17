@@ -4,7 +4,7 @@ export default function Sidebar({ sessions, activeId, onSelect, onNew, user, onL
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brand-mark" />
+        <img src="/logo.jpg" alt="Zero-to-Synced" className="brand-logo" />
         <div className="brand-name">
           Zero-to-Synced
           <small>pipeline agent</small>

@@ -3,13 +3,13 @@ fly.toml
 .env
 .envrc
 
-# Python caches and ALL virtualenvs (including src/.venv which is 480MB)
-__pycache__/
+# ALL virtualenvs anywhere in the tree
+**/.venv/
+**/venv/
+
+# Python caches
 **/__pycache__/
-*.pyc
-.venv/
-venv/
-src/.venv/
+**/*.pyc
 
 # Frontend deps and build artifacts
 frontend/node_modules/
