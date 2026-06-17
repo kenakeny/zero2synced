@@ -36,7 +36,7 @@ async def create_agent(api_key: str | None = None, api_secret: str | None = None
     # Gemini 3. Override with GEMINI_MODEL if you need a different tier/snapshot.
     agent = Agent(
         name="zero_to_synced",
-        model=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+        model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
         instruction=SYSTEM_PROMPT,
         tools=[mcp_toolset]
     )
