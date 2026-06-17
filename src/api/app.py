@@ -1,16 +1,28 @@
 # FastAPI entrypoint. Agents are created per-user from each user's stored
 # Fivetran keys (see agent_pool), so we do NOT build a shared agent at startup.
 import asyncio
+import json
 import os
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
+
+load_dotenv()
+
+# Bootstrap Vertex AI service account credentials from env var.
+# Must happen before any google-auth import so ADC resolution picks it up.
+_sa_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if _sa_json and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+    _tf = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+    json.dump(json.loads(_sa_json), _tf)
+    _tf.close()
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _tf.name
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from google.adk.sessions import DatabaseSessionService
-
-load_dotenv()
 
 from .db import init_tables, get_db_url  # noqa: E402
 from .routes import chat, sessions, uploads, auth, fivetran  # noqa: E402

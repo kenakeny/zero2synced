@@ -7,6 +7,12 @@ app = 'zero2synced'
 primary_region = 'cdg'
 
 [build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  GOOGLE_GENAI_USE_VERTEXAI = "true"
+  GOOGLE_CLOUD_LOCATION = "us-central1"
 
 [http_service]
   internal_port = 8080
